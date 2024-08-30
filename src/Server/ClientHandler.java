@@ -1,23 +1,24 @@
 //Обработчик подключения клинта
-
 package Server;
 
+import Server.Interfaces.IClientHandler;
+
 import javax.swing.*;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
-
-public class ClientHandler implements Runnable {
+public class ClientHandler implements IClientHandler {
     private Socket clientSocket;
     private JTextArea logArea;
-    private volatile boolean active;  // Флаг активности потока
-    // Объявляем список клиентов
+    private volatile boolean active;
     private static List<ClientInfo> clients;
-    private static ChatLogger chatLogger; // Объект для записи логов
+    private static ChatLogger chatLogger;
 
-    public ClientHandler(Socket clientSocket, JTextArea logArea, ChatLogger chatLogger, List<ClientInfo> clients) throws IOException {
+    public ClientHandler(Socket clientSocket, JTextArea logArea, ChatLogger chatLogger, List<ClientInfo> clients) {
         this.clientSocket = clientSocket;
         this.logArea = logArea;
         this.chatLogger = chatLogger;
@@ -68,7 +69,7 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private void broadcastMessage(String message, Socket senderSocket) { //Рассылка сообщения всем пользователям кроме отправителя
+    private void broadcastMessage(String message, Socket senderSocket) {
         for (ClientInfo clientInfo : clients) {
             if (!clientInfo.getSocket().equals(senderSocket)) {
                 try {
@@ -80,3 +81,4 @@ public class ClientHandler implements Runnable {
         }
     }
 }
+

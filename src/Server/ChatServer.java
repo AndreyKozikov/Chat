@@ -1,5 +1,7 @@
 package Server;
 
+import Server.Interfaces.IChatServer;
+
 import javax.swing.*;
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -8,7 +10,7 @@ import java.net.SocketException;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class ChatServer implements Runnable {
+public class ChatServer implements IChatServer {
     private int port;
     private JTextArea logArea;
     private ServerSocket serverSocket;
@@ -16,11 +18,11 @@ public class ChatServer implements Runnable {
     private ChatLogger chatLogger;
     private static List<ClientInfo> clients = new CopyOnWriteArrayList<>();
 
-
     public ChatServer(int port, JTextArea logArea) {
         this.port = port;
         this.logArea = logArea;
     }
+
 
     @Override
     public void run() {
