@@ -1,5 +1,7 @@
 package Client;
 
+import Client.Interfases.IChatClientGUI;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -10,24 +12,20 @@ public class ConnectionPanel extends JPanel {
     private JPasswordField passwordField;
     private JButton loginButton;
 
-    public ConnectionPanel(ChatPanel chatPanel,  ChatClientGUI gui) {
-        setLayout(new GridLayout(2, 1)); // Две строки
+    public ConnectionPanel(ChatPanel chatPanel, IChatClientGUI gui) {
+        setLayout(new GridLayout(2, 1));
 
-        JPanel row1 = new JPanel(new GridLayout(1, 2)); // Одна строка, два столбца
+        JPanel row1 = new JPanel(new GridLayout(1, 2));
         ipField = new JTextField("127.0.0.1");
         portField = new JTextField("9999");
-        //row1.add(new JLabel("Server IP:"));
         row1.add(ipField);
-        //row1.add(new JLabel("Port:"));
         row1.add(portField);
 
-        JPanel row2 = new JPanel(new GridLayout(1, 3)); // Одна строка, три столбца
+        JPanel row2 = new JPanel(new GridLayout(1, 3));
         usernameField = new JTextField("Username");
         passwordField = new JPasswordField();
         loginButton = new JButton("Login");
-        //row2.add(new JLabel("Username:"));
         row2.add(usernameField);
-        //row2.add(new JLabel("Password:"));
         row2.add(passwordField);
         row2.add(loginButton);
 
@@ -39,7 +37,7 @@ public class ConnectionPanel extends JPanel {
             int port = Integer.parseInt(portField.getText());
             String username = usernameField.getText();
             char[] password = passwordField.getPassword();
-            new ChatClient(ip, port, username, password, chatPanel, gui);
+            new ChatClient(ip, port, username, password, gui);
         });
     }
 }

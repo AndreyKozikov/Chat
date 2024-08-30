@@ -1,13 +1,18 @@
 package Client;
 
+import Client.Interfases.IChatClient;
+import Client.Interfases.IChatClientGUI;
+
 import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.logging.Logger;
 
-public class ChatClient {
+public class ChatClient implements IChatClient {
+    private static final Logger logger = Logger.getLogger(ChatClient.class.getName());
     private String ip;
     private int port;
     private String username;
@@ -15,46 +20,42 @@ public class ChatClient {
     private Socket socket;
     private PrintWriter out;
     private BufferedReader in;
-    private ChatPanel chatPanel;
-    private ChatClient chatClient;
-    private ChatClientGUI gui;
+    private IChatClientGUI gui;
 
-
-    public ChatClient(String ip, int port, String username, char[] password, ChatPanel chatPanel, ChatClientGUI gui) {
+    public ChatClient(String ip, int port, String username, char[] password, IChatClientGUI gui) {
         this.ip = ip;
         this.port = port;
         this.username = username;
         this.password = password;
-        this.chatPanel = chatPanel;
         this.gui = gui;
+
         if (connect()) {
-            chatPanel.setChatClient(this);
             gui.setPanelVisible(true);
         } else {
-            JOptionPane.showMessageDialog(chatPanel, "Не удалось подключиться к серверу", "Ошибка", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Не удалось подключиться к серверу", "Ошибка", JOptionPane.ERROR_MESSAGE);
         }
     }
 
+    @Override
     public boolean connect() {
         try {
             socket = new Socket(ip, port);
             out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-            // Отправка имени пользователя и пароля
             out.println(username);
             out.println(String.valueOf(password));
 
-            // Начать прослушивание сообщений от сервера
             new Thread(this::receiveMessages).start();
-
             return true;
         } catch (Exception e) {
+            logger.severe("Ошибка подключения: " + e.getMessage());
             return false;
         }
     }
 
-    private void receiveMessages() {
+    @Override
+    public void receiveMessages() {
         try {
             String message;
             while ((message = in.readLine()) != null) {
@@ -62,40 +63,34 @@ public class ChatClient {
                     break;
                 } else {
                     String finalMessage = message;
-                    SwingUtilities.invokeLater(() -> chatPanel.appendMessage(finalMessage));
+                    SwingUtilities.invokeLater(() -> gui.appendMessage(finalMessage));
                 }
             }
         } catch (Exception e) {
-            SwingUtilities.invokeLater(() -> chatPanel.appendMessage("Произошло отключение от сервера."));
+            SwingUtilities.invokeLater(() -> gui.appendMessage("Произошло отключение от сервера."));
         } finally {
-            disconnect(); // Закрытие ресурсов в случае ошибки
+            disconnect();
         }
-
     }
 
+    @Override
     public void sendMessage(String message) {
         if (out != null) {
             out.println(message);
-            SwingUtilities.invokeLater(() -> chatPanel.appendMessage("You: " + message));
+            SwingUtilities.invokeLater(() -> gui.appendMessage("You: " + message));
         }
     }
 
-    private void disconnect() {
+    @Override
+    public void disconnect() {
         try {
-            if (out != null) {
-                out.close();
-            }
-            if (in != null) {
-                in.close();
-            }
-            if (socket != null && !socket.isClosed()) {
-                socket.close();
-            }
+            if (out != null) out.close();
+            if (in != null) in.close();
+            if (socket != null && !socket.isClosed()) socket.close();
             gui.setPanelVisible(false);
-            chatPanel.reset();
-            SwingUtilities.invokeLater(() -> chatPanel.appendMessage("Вы отключились от сервера."));
+            SwingUtilities.invokeLater(() -> gui.appendMessage("Вы отключились от сервера."));
         } catch (Exception e) {
-            SwingUtilities.invokeLater(() -> chatPanel.appendMessage("Ошибка при отключении: " + e.getMessage()));
+            SwingUtilities.invokeLater(() -> gui.appendMessage("Ошибка при отключении: " + e.getMessage()));
         }
     }
 }

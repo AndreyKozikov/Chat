@@ -1,12 +1,13 @@
 package Client;
 
+import Client.Interfases.IChatClientGUI;
+
 import javax.swing.*;
 import java.awt.*;
 
-public class ChatClientGUI extends JFrame {
+public class ChatClientGUI extends JFrame implements IChatClientGUI {
     private ConnectionPanel connectionPanel;
     private ChatPanel chatPanel;
-
 
     public ChatClientGUI() {
         setTitle("Chat Client");
@@ -15,25 +16,21 @@ public class ChatClientGUI extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-
-
-        // Панель чата (отправка и отображение сообщений)
         chatPanel = new ChatPanel();
         add(chatPanel, BorderLayout.CENTER);
 
-        // Панель для подключения (IP, порт, логин, пароль)
         connectionPanel = new ConnectionPanel(chatPanel, this);
         add(connectionPanel, BorderLayout.NORTH);
     }
 
-
+    @Override
     public void setPanelVisible(boolean isConnect) {
-        if (isConnect) {
-            connectionPanel.setVisible(false); // Скрыть панель подключения
-            chatPanel.setVisible(true); // Показать панель чата
-        } else {
-            connectionPanel.setVisible(true);
-            chatPanel.setVisible(false);
-        }
+        connectionPanel.setVisible(!isConnect);
+        chatPanel.setVisible(isConnect);
+    }
+
+    @Override
+    public void appendMessage(String message) {
+        chatPanel.appendMessage(message);
     }
 }

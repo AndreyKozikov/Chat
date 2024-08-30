@@ -1,5 +1,7 @@
 package Client;
 
+import Client.Interfases.IChatClient;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -9,14 +11,13 @@ public class ChatPanel extends JPanel {
     private JTextArea chatArea;
     private JTextField messageField;
     private JButton sendButton;
-    private ChatClient chatClient;
-
+    private IChatClient chatClient;
 
     public ChatPanel() {
         setLayout(new BorderLayout());
         chatArea = new JTextArea();
         chatArea.setEditable(false);
-        chatArea.setMargin(new Insets(5, 10, 5, 10)); // Отступы: сверху, слева, снизу, справа
+        chatArea.setMargin(new Insets(5, 10, 5, 10));
         JScrollPane scrollPane = new JScrollPane(chatArea);
 
         add(scrollPane, BorderLayout.CENTER);
@@ -29,28 +30,12 @@ public class ChatPanel extends JPanel {
         messagePanel.add(sendButton, BorderLayout.EAST);
         add(messagePanel, BorderLayout.SOUTH);
 
-        sendButton.addActionListener(e -> {
-            String message = messageField.getText().trim();
-            if (!message.isEmpty()) {
-                sendMessage(message);
-                messageField.setText("");
-            }
-        });
-
-        messageField.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // Обработка события нажатия Enter
-                String message = messageField.getText().trim();
-                if (!message.isEmpty()) {
-                    sendMessage(message);
-                    messageField.setText("");
-                }
-            }
-        });
+        // Добавляем обработчики событий для отправки сообщения
+        sendButton.addActionListener(e -> sendMessageFromField());
+        messageField.addActionListener(e -> sendMessageFromField());
     }
 
-    public void setChatClient(ChatClient chatClient) {
+    public void setChatClient(IChatClient chatClient) {
         this.chatClient = chatClient;
     }
 
@@ -65,7 +50,16 @@ public class ChatPanel extends JPanel {
     }
 
     public void reset() {
-        chatArea.setText(""); // Очистить текстовое поле сообщений
-        messageField.setText(""); // Очистить поле ввода сообщений
+        chatArea.setText("");
+        messageField.setText("");
+    }
+
+    // Приватный метод для обработки отправки сообщений
+    private void sendMessageFromField() {
+        String message = messageField.getText().trim();
+        if (!message.isEmpty()) {
+            sendMessage(message);
+            messageField.setText("");
+        }
     }
 }
