@@ -88,7 +88,8 @@ public class ChatClient implements IChatClient {
             if (in != null) in.close();
             if (socket != null && !socket.isClosed()) socket.close();
             gui.setPanelVisible(false);
-            SwingUtilities.invokeLater(() -> gui.appendMessage("Вы отключились от сервера."));
+            gui.clearChat();
+            JOptionPane.showMessageDialog(null, "Произошло отключение от сервера", "Ошибка", JOptionPane.ERROR_MESSAGE);
         } catch (Exception e) {
             SwingUtilities.invokeLater(() -> gui.appendMessage("Ошибка при отключении: " + e.getMessage()));
         }

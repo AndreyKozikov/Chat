@@ -33,4 +33,9 @@ public class ChatClientGUI extends JFrame implements IChatClientGUI {
     public void appendMessage(String message) {
         chatPanel.appendMessage(message);
     }
+
+    @Override
+    public void clearChat() {
+        chatPanel.reset();
+    }
 }

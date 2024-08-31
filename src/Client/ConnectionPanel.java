@@ -37,7 +37,7 @@ public class ConnectionPanel extends JPanel {
             int port = Integer.parseInt(portField.getText());
             String username = usernameField.getText();
             char[] password = passwordField.getPassword();
-            new ChatClient(ip, port, username, password, gui);
+            chatPanel.setChatClient(new ChatClient(ip, port, username, password, gui));
         });
     }
 }

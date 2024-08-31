@@ -48,7 +48,7 @@ public class ChatServer implements IChatServer {
             logArea.append("Ошибка при запуске сервера: " + e.getMessage() + "\n");
         } finally {
             if (chatLogger != null) {
-                chatLogger.close(); // Закрытие логгера при завершении работы сервера
+                chatLogger.close(); // Закрытие логера при завершении работы сервера
             }
         }
     }
@@ -71,7 +71,6 @@ public class ChatServer implements IChatServer {
                 Socket socket = clientInfo.getSocket();
                 if (socket != null && !socket.isClosed()) {
                     try {
-                        clientInfo.getWriter().println("Произошла остановка сервера. Соединение закрыто.");
                         clientInfo.getWriter().println("/close");
                     } catch (Exception e) {
                         logArea.append("Ошибка при отправке сообщения клиенту: " + e.getMessage() + "\n");
