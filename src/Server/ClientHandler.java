@@ -1,7 +1,9 @@
 //Обработчик подключения клинта
 package Server;
 
+import Server.Interfaces.IChatLogger;
 import Server.Interfaces.IClientHandler;
+import Server.Interfaces.IServerControlPanel;
 
 import javax.swing.*;
 import java.io.BufferedReader;
@@ -13,14 +15,14 @@ import java.util.List;
 
 public class ClientHandler implements IClientHandler {
     private Socket clientSocket;
-    private JTextArea logArea;
+    private IServerControlPanel gui;
     private volatile boolean active;
     private static List<ClientInfo> clients;
-    private static ChatLogger chatLogger;
+    private static IChatLogger chatLogger;
 
-    public ClientHandler(Socket clientSocket, JTextArea logArea, ChatLogger chatLogger, List<ClientInfo> clients) {
+    public ClientHandler(Socket clientSocket, IServerControlPanel gui, IChatLogger chatLogger, List<ClientInfo> clients) {
         this.clientSocket = clientSocket;
-        this.logArea = logArea;
+        this.gui = gui;
         this.chatLogger = chatLogger;
         this.active = false;
         this.clients = clients;
@@ -32,13 +34,13 @@ public class ClientHandler implements IClientHandler {
              PrintWriter out = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream()), true)) {
 
             String username = in.readLine();
-            logArea.append(username + " подключился к чату.\n");
+            gui.logMessageAppend(username + " подключился к чату.\n");
             clients.add(new ClientInfo(clientSocket, out)); // Добавляем сокет клиента в список
             //Отправка сообщений всем подключенным пользователям кроме отправителя
             String message;
             while ((message = in.readLine()) != null) {
                 if ("/exit".equalsIgnoreCase(message)) {
-                    logArea.append(username + " вышел из чата.\n");
+                    gui.logMessageAppend(username + " вышел из чата.\n");
                     broadcastMessage(username + " вышел из чата.", clientSocket);
                     break;
                 }
@@ -49,7 +51,7 @@ public class ClientHandler implements IClientHandler {
                     String logContent = chatLogger.readLog();
                     out.println(logContent);
                 } else {
-                    logArea.append(username + ": " + message + "\n");
+                    gui.logMessageAppend(username + ": " + message + "\n");
                     chatLogger.log(username + ": " + message); // Логирование сообщения
                     // Отправка ответа клиенту
                     broadcastMessage(username + ": " + message, clientSocket);
@@ -57,14 +59,14 @@ public class ClientHandler implements IClientHandler {
             }
 
         } catch (Exception e) {
-            logArea.append("Ошибка при работе с клиентом: " + e.getMessage() + "\n");
+            gui.logMessageAppend("Ошибка при работе с клиентом: " + e.getMessage() + "\n");
         } finally {
             try {
                 active = false;
                 clients.removeIf(clientInfo -> clientInfo.getSocket().equals(clientSocket));
                 clientSocket.close();
             } catch (Exception ex) {
-                logArea.append("Ошибка при закрытии соединения: " + ex.getMessage() + "\n");
+                gui.logMessageAppend("Ошибка при закрытии соединения: " + ex.getMessage() + "\n");
             }
         }
     }
@@ -75,7 +77,7 @@ public class ClientHandler implements IClientHandler {
                 try {
                     clientInfo.getWriter().println(message);
                 } catch (Exception e) {
-                    logArea.append("Ошибка при отправке сообщения клиенту: " + e.getMessage() + "\n");
+                    gui.logMessageAppend("Ошибка при отправке сообщения клиенту: " + e.getMessage() + "\n");
                 }
             }
         }

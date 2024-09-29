@@ -1,14 +1,17 @@
 package Server;
 
+import Server.Interfaces.IChatLogger;
+import Server.Interfaces.IChatServer;
 import Server.Interfaces.IServerControlPanel;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 
 public class ServerControlPanel extends JFrame implements IServerControlPanel {
     private boolean isServerWorking = false;
-    private ChatServer chatServer;
     private JTextArea logArea;
+    private IChatServer chatServer;
 
     public ServerControlPanel() {
         setTitle("Управление сервером");
@@ -32,19 +35,26 @@ public class ServerControlPanel extends JFrame implements IServerControlPanel {
         buttonPanel.add(stopButton);
         add(buttonPanel, BorderLayout.SOUTH);
 
-        startButton.addActionListener(e -> startServer());
+        startButton.addActionListener(e -> {
+            try {
+                startServer();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
         stopButton.addActionListener(e -> stopServer());
     }
 
     @Override
-    public void startServer() {
+    public void startServer() throws IOException {
         if (!isServerWorking) {
             isServerWorking = true;
-            logArea.append("Сервер запущен.\n");
-            chatServer = new ChatServer(9999, logArea);
+            logMessageAppend("Сервер запущен.\n");
+            IChatLogger chatLogger = new ChatLogger("chat_logs.txt");
+            chatServer = new ChatServer(9999, this, chatLogger);
             new Thread(chatServer).start();
         } else {
-            logArea.append("Сервер уже работает.\n");
+            logMessageAppend("Сервер уже работает.\n");
         }
     }
 
@@ -54,7 +64,11 @@ public class ServerControlPanel extends JFrame implements IServerControlPanel {
             isServerWorking = false;
             chatServer.stopServer();
         } else {
-            logArea.append("Сервер уже остановлен.\n");
+            logMessageAppend("Сервер уже остановлен.\n");
         }
+    }
+
+    public void logMessageAppend(String message){
+        logArea.append(message);
     }
 }

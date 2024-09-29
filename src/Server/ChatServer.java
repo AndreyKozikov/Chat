@@ -1,6 +1,8 @@
 package Server;
 
+import Server.Interfaces.IChatLogger;
 import Server.Interfaces.IChatServer;
+import Server.Interfaces.IServerControlPanel;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -12,40 +14,41 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ChatServer implements IChatServer {
     private int port;
-    private JTextArea logArea;
+    private IServerControlPanel gui;
     private ServerSocket serverSocket;
     private boolean running = true;
-    private ChatLogger chatLogger;
+    private IChatLogger chatLogger;
     private static List<ClientInfo> clients = new CopyOnWriteArrayList<>();
 
-    public ChatServer(int port, JTextArea logArea) {
+    public ChatServer(int port, IServerControlPanel gui, IChatLogger chatLogger) {
         this.port = port;
-        this.logArea = logArea;
+        this.gui = gui;
+        this.chatLogger = chatLogger;
     }
 
 
     @Override
     public void run() {
         try {
-            chatLogger = new ChatLogger("chat_logs.txt");
+
             serverSocket = new ServerSocket(port);
-            logArea.append("Сервер слушает на порту " + port + "...\n");
+            gui.logMessageAppend("Сервер слушает на порту " + port + "...\n");
 
             while (running) {
                 try {
                     Socket clientSocket = serverSocket.accept(); //Ожидание нового пользователя в чате
-                    logArea.append("Подключен новый клиент: " + clientSocket.getInetAddress() + "\n");
-                    new Thread(new ClientHandler(clientSocket, logArea, chatLogger, clients)).start(); //Запуск нового потока для вновь подключенного пользователя
+                    gui.logMessageAppend("Подключен новый клиент: " + clientSocket.getInetAddress() + "\n");
+                    new Thread(new ClientHandler(clientSocket, gui, chatLogger, clients)).start(); //Запуск нового потока для вновь подключенного пользователя
                 } catch (SocketException e) {
                     if (!running) {
-                        logArea.append("Сервер был остановлен.\n");
+                        gui.logMessageAppend("Сервер был остановлен.\n");
                     } else {
-                        logArea.append("Ошибка при ожидании подключения: " + e.getMessage() + "\n");
+                        gui.logMessageAppend("Ошибка при ожидании подключения: " + e.getMessage() + "\n");
                     }
                 }
             }
         } catch (Exception e) {
-            logArea.append("Ошибка при запуске сервера: " + e.getMessage() + "\n");
+            gui.logMessageAppend("Ошибка при запуске сервера: " + e.getMessage() + "\n");
         } finally {
             if (chatLogger != null) {
                 chatLogger.close(); // Закрытие логера при завершении работы сервера
@@ -61,7 +64,7 @@ public class ChatServer implements IChatServer {
                 serverSocket.close();
             }
         } catch (Exception e) {
-            logArea.append("Ошибка при остановке сервера: " + e.getMessage() + "\n");
+            gui.logMessageAppend("Ошибка при остановке сервера: " + e.getMessage() + "\n");
         }
     }
 
@@ -73,19 +76,19 @@ public class ChatServer implements IChatServer {
                     try {
                         clientInfo.getWriter().println("/close");
                     } catch (Exception e) {
-                        logArea.append("Ошибка при отправке сообщения клиенту: " + e.getMessage() + "\n");
+                        gui.logMessageAppend("Ошибка при отправке сообщения клиенту: " + e.getMessage() + "\n");
                     } finally {
                         try {
                             socket.close();
                             // Удаление клиента из списка после закрытия сокета
                             clients.remove(clientInfo);
                         } catch (IOException e) {
-                            logArea.append("Ошибка при закрытии клиентского сокета: " + e.getMessage() + "\n");
+                            gui.logMessageAppend("Ошибка при закрытии клиентского сокета: " + e.getMessage() + "\n");
                         }
                     }
                 }
             } catch (Exception e) {
-                logArea.append("Ошибка при обработке клиентского соединения: " + e.getMessage() + "\n");
+                gui.logMessageAppend("Ошибка при обработке клиентского соединения: " + e.getMessage() + "\n");
             }
         }
     }
